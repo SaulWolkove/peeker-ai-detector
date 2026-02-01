@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output (regenerated with npm run build)
+*.bundle.js
+*.bundle.js.map
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+nul
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
