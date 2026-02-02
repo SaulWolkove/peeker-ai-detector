@@ -35,7 +35,7 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// Listener for messages from content script
+// Listener for messages from content script and options page
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'analyzeImage' && sender.tab) {
     handleAnalyzeImageRequest(message.imageUrl)
@@ -53,6 +53,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     fetchImageAsDataUrl(message.imageUrl)
       .then(dataUrl => sendResponse({ dataUrl }))
       .catch(() => sendResponse({ dataUrl: null }));
+    return true;
+  }
+  if (message.action === 'updateIconVisibility') {
+    // Broadcast visibility change to all tabs
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'setIconVisibility',
+          visible: message.show
+        }).catch(() => {});
+      });
+    });
+    sendResponse({ success: true });
     return true;
   }
 });

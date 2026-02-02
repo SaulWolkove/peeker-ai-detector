@@ -7,6 +7,7 @@ module.exports = {
     background: './src/background.js',
     offscreen: './src/offscreen.js',
     content: './src/content.js',
+    options: './src/options.js',
   },
   output: {
     filename: '[name].bundle.js',

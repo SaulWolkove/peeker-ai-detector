@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Peeker Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: 0 auto;
+      color: #333;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h1 img {
+      height: 40px;
+    }
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .setting-info {
+      flex: 1;
+    }
+    .setting-label {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .setting-description {
+      font-size: 13px;
+      color: #666;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 28px;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 28px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input:checked + .toggle-slider {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+    .status {
+      font-size: 13px;
+      color: #666;
+      margin-top: 20px;
+      padding: 12px;
+      background: #e8f4e8;
+      border-radius: 6px;
+      display: none;
+    }
+    .status.visible {
+      display: block;
+    }
+    .note {
+      font-size: 12px;
+      color: #888;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+  <h1>
+    <img src="icons/peeker.png" alt="Peeker">
+    Peeker Settings
+  </h1>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <div class="setting-label">Show floating icon on pages</div>
+      <div class="setting-description">Display the Peeker detector icon in the corner of web pages</div>
+    </div>
+    <label class="toggle-switch">
+      <input type="checkbox" id="showIcon" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <div class="status" id="status">Settings saved!</div>
+
+  <div class="note">
+    Tip: You can always right-click on any image and select "Run Peeker AI Detection" from the context menu, even when the floating icon is hidden.
+  </div>
+
+  <script src="options.bundle.js"></script>
+</body>
+</html>

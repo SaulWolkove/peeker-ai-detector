@@ -4,6 +4,7 @@ let panelOpen = false;
 let lastAnalysisType = null;
 let lastAnalyzedContent = null;
 let lastPrediction = null;
+let iconVisible = true;
 
 const AWS_API_URL = 'https://7f8txofny1.execute-api.us-east-1.amazonaws.com/feedback';
 
@@ -211,21 +212,6 @@ function createFloatingIcon() {
         outline: none;
         border-color: #667eea;
       }
-      .word-counter {
-        text-align: right;
-        font-size: 11px;
-        color: #666;
-        margin: -8px 16px 8px;
-      }
-      .word-counter.too-short {
-        color: #f87171;
-      }
-      .word-counter.too-long {
-        color: #f87171;
-      }
-      .word-counter.valid {
-        color: #4ade80;
-      }
       #ai-detector-results {
         padding: 0 16px 16px;
         display: none;
@@ -411,7 +397,6 @@ function createFloatingIcon() {
       <div class="section-divider analysis-options"><span>or analyze text</span></div>
 
       <textarea id="ai-detector-textarea" class="analysis-options" placeholder="Paste text here to check if it's AI-generated..."></textarea>
-      <div id="ai-detector-word-count" class="analysis-options word-counter">0 / 200-500 words</div>
       <button id="ai-detector-analyze-text-btn" class="analysis-options">Analyze Text</button>
 
       <div id="ai-detector-results"></div>
@@ -440,23 +425,6 @@ function createFloatingIcon() {
   const logo = container.querySelector('#peeker-logo');
   logo.src = chrome.runtime.getURL('icons/peeker.png');
   const continueBtn = container.querySelector('#ai-detector-continue-btn');
-  const wordCounter = container.querySelector('#ai-detector-word-count');
-
-  const updateWordCount = () => {
-    const text = textarea.value.trim();
-    const count = text ? text.split(/\s+/).filter(word => word.length > 0).length : 0;
-    wordCounter.textContent = `${count} / 200-500 words`;
-    wordCounter.classList.remove('too-short', 'too-long', 'valid');
-    if (count < 200) {
-      wordCounter.classList.add('too-short');
-    } else if (count > 500) {
-      wordCounter.classList.add('too-long');
-    } else {
-      wordCounter.classList.add('valid');
-    }
-  };
-
-  textarea.addEventListener('input', updateWordCount);
 
   // Toggle panel visibility on icon click
   icon.addEventListener('click', () => {
@@ -468,6 +436,10 @@ function createFloatingIcon() {
   closeBtn.addEventListener('click', () => {
     panelOpen = false;
     panel.classList.remove('open');
+    // Hide icon again if setting is disabled
+    if (!iconVisible) {
+      container.style.display = 'none';
+    }
   });
 
   // Upload button opens file picker
@@ -491,15 +463,6 @@ function createFloatingIcon() {
     const text = textarea.value.trim();
     if (!text) {
       showResults({ error: 'Please enter some text to analyze' });
-      return;
-    }
-    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-    if (wordCount < 200) {
-      showResults({ error: `Text too short. Minimum 200 words required (currently ${wordCount} words)` });
-      return;
-    }
-    if (wordCount > 500) {
-      showResults({ error: `Text too long. Maximum 500 words allowed (currently ${wordCount} words)` });
       return;
     }
     analyzeText(text);
@@ -741,9 +704,14 @@ async function analyzeText(text) {
   }
 }
 
-// Listener for messages from background script (context menu triggers)
+// Listener for messages from background script (context menu triggers and settings)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'showNotification') {
+    // Show the icon if it's hidden when using context menu
+    const container = document.getElementById('ai-detector-container');
+    if (container) {
+      container.style.display = 'block';
+    }
     const panel = document.querySelector('#ai-detector-panel');
     if (panel) {
       panel.classList.add('open');
@@ -754,6 +722,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       lastAnalyzedContent = message.data.imageUrl;
     }
     showResults(message.data);
+    sendResponse({ success: true });
+  }
+  if (message.action === 'setIconVisibility') {
+    setIconVisibility(message.visible);
     sendResponse({ success: true });
   }
   return true;
@@ -841,4 +813,43 @@ async function getImageAsDataUrl(imageUrl) {
   });
 }
 
-createFloatingIcon();
+// Shows or hides the floating icon container
+function setIconVisibility(visible) {
+  iconVisible = visible;
+  const container = document.getElementById('ai-detector-container');
+  if (container) {
+    container.style.display = visible ? 'block' : 'none';
+    // Close panel when hiding
+    if (!visible) {
+      const panel = container.querySelector('#ai-detector-panel');
+      if (panel) {
+        panel.classList.remove('open');
+        panelOpen = false;
+      }
+    }
+  }
+}
+
+// Initialize extension with visibility setting
+function initExtension() {
+  chrome.storage.sync.get(['showFloatingIcon'], (result) => {
+    // Default to true (show icon) if not set
+    const shouldShow = result.showFloatingIcon !== false;
+    iconVisible = shouldShow;
+
+    createFloatingIcon();
+
+    if (!shouldShow) {
+      setIconVisibility(false);
+    }
+  });
+}
+
+// Listen for storage changes to update visibility in real-time
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync' && changes.showFloatingIcon) {
+    setIconVisibility(changes.showFloatingIcon.newValue !== false);
+  }
+});
+
+initExtension();
